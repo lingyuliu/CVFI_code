@@ -37,3 +37,21 @@ the reverse temporal direction, starting from the original end frame and ending 
 directions are controlled by distinct learnable directional tokens. The model is supervised with reconstruction losses
 in both latent space and pixel space for both directions, which encourages consistent motion modeling under time
 reversal.
+
+## Training
+
+```shell
+  Code will be released after paper acceptance. Currently in preparation.
+```
+
+## Inference
+
+```shell
+  Code will be released after paper acceptance. Currently in preparation.
+```
+
+## Acknowledgments
+
+This repository is benefit from [musubi-tuner](https://github.com/kohya-ss/musubi-tuner) and [DiffSynth-Studio](https://github.com/modelscope/DiffSynth-Studio/tree/main). Thanks for the
+open-sourcing work! We would also like to thank to the great projects
+in [FramePack](https://github.com/lllyasviel/FramePack) and [Semantic Frame Interpolation](https://github.com/hyj542682306/Semantic-Frame-Interpolation).

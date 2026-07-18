@@ -125,13 +125,13 @@ def prepare_accelerator(args: argparse.Namespace) -> Accelerator:
         if log_with in ["tensorboard", "all"]:
             if logging_dir is None:
                 raise ValueError(
-                    "logging_dir is required when log_with is tensorboard / Tensorboardを使う場合、logging_dirを指定してください"
+                    "logging_dir is required when log_with is tensorboard"
                 )
         if log_with in ["wandb", "all"]:
             try:
                 import wandb
             except ImportError:
-                raise ImportError("No wandb / wandb がインストールされていないようです")
+                raise ImportError("No wandb")
             if logging_dir is not None:
                 os.makedirs(logging_dir, exist_ok=True)
                 os.environ["WANDB_DIR"] = logging_dir
@@ -265,7 +265,7 @@ def line_to_prompt_dict(line: str) -> dict:
                 continue
 
         except ValueError as ex:
-            logger.error(f"Exception in parsing / 解析エラー: {parg}")
+            logger.error(f"Exception in parsing: {parg}")
             logger.error(ex)
 
     return prompt_dict
@@ -331,7 +331,7 @@ def get_sigmas(noise_scheduler, timesteps, device, n_dim=4, dtype=torch.float32)
     if any([(schedule_timesteps == t).sum() == 0 for t in timesteps]):
         # raise ValueError("Some timesteps are not in the schedule / 一部のtimestepsがスケジュールに含まれていません")
         # round to nearest timestep
-        logger.warning("Some timesteps are not in the schedule / 一部のtimestepsがスケジュールに含まれていません")
+        logger.warning("Some timesteps are not in the schedule")
         step_indices = [torch.argmin(torch.abs(schedule_timesteps - t)).item() for t in timesteps]
     else:
         step_indices = [(schedule_timesteps == t).nonzero().item() for t in timesteps]
@@ -381,7 +381,6 @@ class NetworkTrainer:
         self.timestep_range_pool = []
         self.num_timestep_buckets: Optional[int] = None  # for get_bucketed_timestep()
 
-    # TODO 他のスクリプトと共通化する
     def generate_step_logs(
             self,
             args: argparse.Namespace,
@@ -494,7 +493,7 @@ class NetworkTrainer:
             try:
                 import bitsandbytes as bnb
             except ImportError:
-                raise ImportError("No bitsandbytes / bitsandbytesがインストールされていないようです")
+                raise ImportError("No bitsandbytes")
 
             if optimizer_type == "AdamW8bit".lower():
                 logger.info(f"use 8-bit AdamW optimizer | {optimizer_kwargs}")
@@ -509,7 +508,7 @@ class NetworkTrainer:
                 optimizer_kwargs["relative_step"] = True  # default
             if not optimizer_kwargs["relative_step"] and optimizer_kwargs.get("warmup_init", False):
                 logger.info(
-                    "set relative_step to True because warmup_init is True / warmup_initがTrueのためrelative_stepをTrueにします"
+                    "set relative_step to True because warmup_init is True"
                 )
                 optimizer_kwargs["relative_step"] = True
             logger.info(f"use Adafactor optimizer | {optimizer_kwargs}")
@@ -518,24 +517,24 @@ class NetworkTrainer:
                 logger.info("relative_step is true / relative_stepがtrueです")
                 if lr != 0.0:
                     logger.warning(
-                        "learning rate is used as initial_lr / 指定したlearning rateはinitial_lrとして使用されます")
+                        "learning rate is used as initial_lr")
                 args.learning_rate = None
 
                 if args.lr_scheduler != "adafactor":
-                    logger.info("use adafactor_scheduler / スケジューラにadafactor_schedulerを使用します")
-                args.lr_scheduler = f"adafactor:{lr}"  # ちょっと微妙だけど
+                    logger.info("use adafactor_scheduler")
+                args.lr_scheduler = f"adafactor:{lr}"
 
                 lr = None
             else:
                 if args.max_grad_norm != 0.0:
                     logger.warning(
-                        "because max_grad_norm is set, clip_grad_norm is enabled. consider set to 0 / max_grad_normが設定されているためclip_grad_normが有効になります。0に設定して無効にしたほうがいいかもしれません"
+                        "because max_grad_norm is set, clip_grad_norm is enabled. consider set to 0 "
                     )
                 if args.lr_scheduler != "constant_with_warmup":
                     logger.warning(
-                        "constant_with_warmup will be good / スケジューラはconstant_with_warmupが良いかもしれません")
+                        "constant_with_warmup will be good")
                 if optimizer_kwargs.get("clip_threshold", 1.0) != 1.0:
-                    logger.warning("clip_threshold=1.0 will be good / clip_thresholdは1.0が良いかもしれません")
+                    logger.warning("clip_threshold=1.0 will be good")
 
             optimizer_class = transformers.optimization.Adafactor
             optimizer = optimizer_class(trainable_params, lr=lr, **optimizer_kwargs)
@@ -646,7 +645,7 @@ class NetworkTrainer:
 
         if name.startswith("adafactor"):
             assert type(optimizer) == transformers.optimization.Adafactor, (
-                "adafactor scheduler must be used with Adafactor optimizer / adafactor schedulerはAdafactorオプティマイザと同時に使ってください"
+                "adafactor scheduler must be used with Adafactor optimizer"
             )
             initial_lr = float(name.split(":")[1])
             # logger.info(f"adafactor scheduler init lr {initial_lr}")
@@ -798,7 +797,7 @@ class NetworkTrainer:
             asyncio.gather(*[download(filename=filename.rfilename) for filename in list_files]))
         if len(results) == 0:
             raise ValueError(
-                "No files found in the specified repo id/path/revision / 指定されたリポジトリID/パス/リビジョンにファイルが見つかりませんでした"
+                "No files found in the specified repo id/path/revision"
             )
         dirname = os.path.dirname(results[0])
         accelerator.load_state(dirname)
@@ -1007,7 +1006,7 @@ class NetworkTrainer:
                         break
                 if len(available_t) < batch_size:
                     logger.warning(
-                        f"Could not sample {batch_size} valid timesteps in {max_loops} loops / {max_loops}ループで{batch_size}個の有効なタイムステップをサンプリングできませんでした"
+                        f"Could not sample {batch_size} valid timesteps in {max_loops} loops"
                     )
                     available_t = compute_sampling_timesteps(timesteps)
                 else:
@@ -1132,9 +1131,9 @@ class NetworkTrainer:
             return
 
         logger.info("")
-        logger.info(f"generating sample images at step / サンプル画像生成 ステップ: {steps}")
+        logger.info(f"generating sample images at step")
         if sample_parameters is None:
-            logger.error(f"No prompt file / プロンプトファイルがありません: {args.sample_prompts}")
+            logger.error(f"No prompt file: {args.sample_prompts}")
             return
 
         distributed_state = PartialState()  # for multi gpu distributed inference. this is a singleton, so it's safe to use it here
@@ -1208,7 +1207,7 @@ class NetworkTrainer:
         if self.i2v_training:
             image_path = sample_parameter.get("image_path", None)
             if image_path is None:
-                logger.error("No image_path for i2v model / i2vモデルのサンプル画像生成にはimage_pathが必要です")
+                logger.error("No image_path for i2v model")
                 return
         else:
             image_path = None
@@ -1217,7 +1216,7 @@ class NetworkTrainer:
             control_video_path = sample_parameter.get("control_video_path", None)
             if control_video_path is None:
                 logger.error(
-                    "No control_video_path for control model / controlモデルのサンプル画像生成にはcontrol_video_pathが必要です"
+                    "No control_video_path for control model"
                 )
                 return
         else:
@@ -1278,7 +1277,7 @@ class NetworkTrainer:
 
         # Save video
         if video is None:
-            logger.error("No video generated / 生成された動画がありません")
+            logger.error("No video generated")
             return
 
         ts_str = time.strftime("%Y%m%d%H%M%S", time.localtime())
@@ -1295,7 +1294,7 @@ class NetworkTrainer:
             try:
                 import wandb
             except ImportError:
-                raise ImportError("No wandb / wandb がインストールされていないようです")
+                raise ImportError("No wandb")
         except:  # wandb 無効時
             wandb = None
 
