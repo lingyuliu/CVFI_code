@@ -30,7 +30,7 @@
 
 ### Framework
 
-![framework](videos/framework.jpg)
+![framework](videos/f1.jpg)
 A brief overview of our framework. During training, each ground-truth video is used to construct two samples. The
 forward sample interpolates from the original start frame to the original end frame. The backward sample interpolates in
 the reverse temporal direction, starting from the original end frame and ending at the original start frame. These two
