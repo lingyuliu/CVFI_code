@@ -1,7 +1,7 @@
 # Can Video Diffusion Models Predict Past Frames? Bidirectional Cycle Consistency for Reversible Interpolation
 
 
-> [[Paper](https://arxiv.org/abs/2604.01700)]
+> [[Paper](https://arxiv.org/abs/2604.01700)]   [[Project Page](https://lingyuliu.github.io/CVFI/)]
 ### Abstract
 
 > Video frame interpolation aims to synthesize realistic intermediate frames between given endpoints while adhering to
